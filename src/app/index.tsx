@@ -19,16 +19,10 @@ export default function Home() {
         <Muted>Browse dressage tests, or add and upload new ones.</Muted>
       </Card>
 
-      {hasRole('judge') && (
-        <Card>
-          <Text style={{ fontSize: 18, fontWeight: '600' }}>My judging</Text>
-          <Muted>Your arena, class and test for the day will appear here.</Muted>
-        </Card>
-      )}
-      {hasRole('scribe') && (
-        <Card>
-          <Text style={{ fontSize: 18, fontWeight: '600' }}>Scribing</Text>
-          <Muted>Score sheets for your assigned judge will appear here.</Muted>
+      {(hasRole('judge') || hasRole('scribe')) && (
+        <Card onPress={() => router.push('/scoring')}>
+          <Text style={{ fontSize: 18, fontWeight: '600' }}>{hasRole('judge') ? 'My judging' : 'Scribing'}</Text>
+          <Muted>Your classes, the draw, and the score sheets. Works without signal.</Muted>
         </Card>
       )}
       {hasRole('rider') && (
@@ -37,6 +31,15 @@ export default function Home() {
           <Muted>Your marks and judges' comments will appear here once results are published.</Muted>
         </Card>
       )}
+
+      <Card onPress={() => router.push('/organiser')}>
+        <Text style={{ fontSize: 18, fontWeight: '600' }}>{hasRole('organiser') ? 'Organise shows' : 'Run a club'}</Text>
+        <Muted>
+          {hasRole('organiser')
+            ? 'Shows, arenas, classes, judges, scribes and the draw.'
+            : 'Create your club to set up shows.'}
+        </Muted>
+      </Card>
 
       <Card onPress={() => router.push('/profile')}>
         <Text style={{ fontSize: 18, fontWeight: '600' }}>My profile</Text>

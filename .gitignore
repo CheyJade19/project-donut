@@ -43,3 +43,4 @@ yarn-error.*
 # Supabase
 supabase/.temp/
 .env
+.cache/

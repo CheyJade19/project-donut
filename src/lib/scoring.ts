@@ -23,7 +23,7 @@ type Scorable = Pick<MovementDraft, 'number' | 'coefficient' | 'max_mark'>;
 export function computeSheetTotals(
   movements: Scorable[],
   marks: Record<number, number | null | undefined>,
-  options: { errorsOfCourse?: number; errorPenalties?: number[]; otherDeductions?: number } = {},
+  options: { errorsOfCourse?: number; errorPenalties?: number[]; otherDeductions?: number; eliminated?: boolean } = {},
 ): SheetTotals {
   const { errorsOfCourse = 0, errorPenalties = [2, 4], otherDeductions = 0 } = options;
 
@@ -37,7 +37,8 @@ export function computeSheetTotals(
     else rawPoints += mark * m.coefficient;
   }
 
-  const eliminated = errorsOfCourse > errorPenalties.length;
+  // Eliminated for errors of course, or by the judge for another reason.
+  const eliminated = options.eliminated === true || errorsOfCourse > errorPenalties.length;
   const errorPenalty = eliminated
     ? 0
     : errorPenalties.slice(0, errorsOfCourse).reduce((sum, p) => sum + p, 0);
@@ -47,6 +48,20 @@ export function computeSheetTotals(
 
   return { rawPoints, maxPoints, errorPenalty, otherDeductions, finalPoints, percentage, eliminated, missing };
 }
+
+/** Totals for a sheet whose marks are keyed by movement id (as the device stores them). */
+export function totalsByMovementId(
+  movements: (Scorable & { id: string })[],
+  marks: Record<string, { mark: number | null } | undefined>,
+  options: Parameters<typeof computeSheetTotals>[2] = {},
+): SheetTotals {
+  const byNumber: Record<number, number | null | undefined> = {};
+  for (const m of movements) byNumber[m.number] = marks[m.id]?.mark;
+  return computeSheetTotals(movements, byNumber, options);
+}
+
+/** Marks a scribe can give: 0 to 10 in half marks. */
+export const MARKS: number[] = Array.from({ length: 21 }, (_, i) => i / 2);
 
 /** Sum of max mark x coefficient across the test. */
 export function maxTestPoints(movements: Scorable[]): number {
