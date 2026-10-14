@@ -28,7 +28,7 @@ People can hold several roles (a judge who also rides, for example).
   sheets and movement marks, plus a totals view.
 - Test library: browse and search tests, add them by hand, or upload a CSV.
 
-**Phase 2: scoring** (this branch)
+**Phase 2: scoring** (done)
 
 - Organiser screens: create a club, shows, arenas and classes; pick each
   class's test; put judges (by position) and scribes on the panel; add riders
@@ -44,9 +44,22 @@ People can hold several roles (a judge who also rides, for example).
   signs it (one at a time or all at once) on their own login. Signed sheets
   are locked; only an organiser can reopen one.
 
-Next: Phase 3
-(live leaderboard, rider results, PDF sheets), Phase 4 (pilot show, store
-release). Later: showjumping and eventing.
+**Phase 3: results and riders** (this branch)
+
+- Live leaderboard per class, updating as judges sign (Supabase realtime on
+  the class row, plus a refresh every 30 seconds). With several judges the
+  score is the average of their percentages; ties are split on the
+  collective marks, then share the placing. Riders with only some sheets
+  signed show as provisional; eliminated and withdrawn riders are listed
+  but not placed.
+- Organiser controls per class: who sees the live scoreboard (judges and
+  organisers only, or everyone), and when riders' sheets go public (hidden,
+  now, or automatically at a set time).
+- Riders see their placings and every judge's marks and comments, side by
+  side for multi-judge classes, and can download the sheets as a PDF.
+  Riders only ever see signed sheets.
+
+Next: Phase 4 (pilot show, store release). Later: showjumping and eventing.
 
 ## Getting started
 
@@ -81,10 +94,10 @@ Tests already used in a show are locked so existing score sheets stay valid.
 
 ```bash
 npm run typecheck   # TypeScript
-npm test            # scoring, offline queue and CSV import unit tests
+npm test            # scoring, results, PDF, offline queue and CSV import unit tests
 PGURL=postgres://postgres:postgres@localhost:5432 npm run test:db
                     # applies migrations to a scratch Postgres and checks the
-                    # access rules and sheet saving/signing
+                    # access rules, sheet saving/signing and the leaderboard
 PGURL=postgres://postgres:postgres@localhost:5432 npm run test:e2e
                     # a whole show day through the app's own data code,
                     # served by PostgREST like Supabase does (downloads
