@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
   },
   stepperText: { fontSize: 24, color: colors.primary, fontWeight: '700' },
-  strip: { flexGrow: 0, backgroundColor: colors.bg, borderBottomWidth: 1, borderBottomColor: colors.border },
+  strip: { flexGrow: 0, flexShrink: 0, backgroundColor: colors.bg, borderBottomWidth: 1, borderBottomColor: colors.border },
   pill: {
     minWidth: 48,
     paddingVertical: 6,
