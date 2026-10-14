@@ -1,5 +1,5 @@
 import * as DocumentPicker from 'expo-document-picker';
-import { Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -7,6 +7,7 @@ import { PersonPicker, type PersonOption } from '@/components/PersonPicker';
 import { Button, Card, Chip, ErrorText, Field, Muted, Row, Screen, Title, colors } from '@/components/ui';
 import { parseEntriesCsv, type EntryDraft } from '@/lib/entryImport';
 import { combineDateTime, formatTime } from '@/lib/format';
+import { publishingSummary, resultsArePublic } from '@/lib/results';
 import { supabase } from '@/lib/supabase';
 import {
   JUDGE_POSITIONS,
@@ -62,13 +63,6 @@ export default function ClassSetup() {
     }, [load]),
   );
 
-  async function togglePublished() {
-    if (!cls) return;
-    const { error } = await supabase.from('classes').update({ results_published: !cls.results_published }).eq('id', id);
-    if (error) setError(error.message);
-    else load();
-  }
-
   if (!cls) return <Screen>{error ? <ErrorText>{error}</ErrorText> : <Muted>Loading…</Muted>}</Screen>;
 
   const riders = entries.filter((e) => !e.withdrawn);
@@ -93,15 +87,82 @@ export default function ClassSetup() {
             ? 'Add judges and riders to start scoring.'
             : `${signed} of ${needed} sheets signed (${riders.length} riders × ${panel.length} judge${panel.length === 1 ? '' : 's'}).`}
         </Muted>
-        <Row>
-          <Chip label={cls.results_published ? 'Results published' : 'Results hidden'} selected={cls.results_published} onPress={togglePublished} />
-          <Muted>{cls.results_published ? 'Riders can see their sheets.' : 'Riders see nothing until you publish.'}</Muted>
-        </Row>
       </Card>
+
+      <ResultsCard cls={cls} unsigned={Math.max(0, needed - signed)} onChanged={load} />
 
       <PanelCard classId={id} panel={panel} entries={riders} sheets={sheets} onChanged={load} />
       <EntriesCard cls={cls} entries={entries} onChanged={load} />
     </Screen>
+  );
+}
+
+type PublishMode = 'hidden' | 'now' | 'scheduled';
+
+/** When the leaderboard and the riders' sheets become public. */
+function ResultsCard({ cls, unsigned, onChanged }: { cls: ClassRow; unsigned: number; onChanged: () => void }) {
+  const saved: PublishMode = cls.results_published ? 'now' : cls.results_publish_at ? 'scheduled' : 'hidden';
+  const [mode, setMode] = useState<PublishMode>(saved);
+  const [time, setTime] = useState(cls.results_publish_at ? formatTime(cls.results_publish_at) : '');
+  const [error, setError] = useState('');
+
+  async function update(patch: Partial<DressageClass>) {
+    const { error } = await supabase.from('classes').update(patch).eq('id', cls.id);
+    if (error) return setError(error.message);
+    setError('');
+    onChanged();
+  }
+
+  function choose(next: PublishMode) {
+    setMode(next);
+    if (next === 'hidden') update({ results_published: false, results_publish_at: null });
+    if (next === 'now') update({ results_published: true, results_publish_at: null });
+  }
+
+  function saveTime() {
+    const at = combineDateTime(cls.shows.show_date, time);
+    if (!at) return setError('Enter the time like 16:30.');
+    update({ results_published: false, results_publish_at: at });
+  }
+
+  return (
+    <Card>
+      <Text style={styles.heading}>Results</Text>
+      <Muted>{publishingSummary(cls)}</Muted>
+
+      <Text style={styles.sub}>Live scoreboard</Text>
+      <Row>
+        <Chip label="Judges and organisers only" selected={!cls.leaderboard_public} onPress={() => update({ leaderboard_public: false })} />
+        <Chip label="Everyone" selected={cls.leaderboard_public} onPress={() => update({ leaderboard_public: true })} />
+      </Row>
+      <Muted>Shows placings and percentages as each sheet is signed. Marks and comments stay private.</Muted>
+
+      <Text style={styles.sub}>Riders' sheets and final results</Text>
+      <Row>
+        <Chip label="Hidden" selected={mode === 'hidden'} onPress={() => choose('hidden')} />
+        <Chip label="Publish now" selected={mode === 'now'} onPress={() => choose('now')} />
+        <Chip label="At a set time" selected={mode === 'scheduled'} onPress={() => choose('scheduled')} />
+      </Row>
+      {mode === 'scheduled' && (
+        <Row>
+          <View style={{ width: 110 }}>
+            <Field label="Time" value={time} onChangeText={setTime} placeholder="16:30" />
+          </View>
+          <View style={{ alignSelf: 'flex-end' }}>
+            <Button label={saved === 'scheduled' ? 'Change time' : 'Set time'} variant="secondary" onPress={saveTime} disabled={!time.trim()} />
+          </View>
+        </Row>
+      )}
+      {unsigned > 0 && mode !== 'hidden' && (
+        <Muted>{unsigned} sheet{unsigned === 1 ? ' is' : 's are'} not signed yet. Riders only see signed sheets; the rest appear as the judges sign.</Muted>
+      )}
+      <ErrorText>{error}</ErrorText>
+      <Button
+        label={resultsArePublic(cls) ? 'Open results' : 'Open leaderboard'}
+        variant="secondary"
+        onPress={() => router.push({ pathname: '/results/class/[id]', params: { id: cls.id } })}
+      />
+    </Card>
   );
 }
 
@@ -345,6 +406,7 @@ async function linkRiderAccounts(drafts: EntryDraft[]) {
 
 const styles = StyleSheet.create({
   heading: { fontSize: 17, fontWeight: '700' },
+  sub: { fontSize: 15, fontWeight: '600', marginTop: 8 },
   line: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border },
   position: { width: 28, fontSize: 18, fontWeight: '700', color: colors.primary, textAlign: 'center' },
 });
