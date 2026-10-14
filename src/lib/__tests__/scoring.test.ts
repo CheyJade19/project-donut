@@ -1,4 +1,4 @@
-import { computeSheetTotals, isValidMark, maxTestPoints } from '../scoring';
+import { computeSheetTotals, isValidMark, MARKS, maxTestPoints, totalsByMovementId } from '../scoring';
 
 const movements = [
   { number: 1, coefficient: 1, max_mark: 10 },
@@ -48,5 +48,26 @@ describe('helpers', () => {
     expect(isValidMark(10)).toBe(true);
     expect(isValidMark(6.3)).toBe(false);
     expect(isValidMark(11)).toBe(false);
+  });
+});
+
+describe('totalsByMovementId', () => {
+  const byId = movements.map((m) => ({ ...m, id: `m${m.number}` }));
+
+  it('matches marks to movements by id', () => {
+    const t = totalsByMovementId(byId, { m1: { mark: 6.5 }, m2: { mark: 7 }, m3: { mark: 7.5 } });
+    expect(t.rawPoints).toBe(28.5);
+    expect(t.missing).toBe(0);
+  });
+
+  it('scores zero when the judge eliminates', () => {
+    const t = totalsByMovementId(byId, { m1: { mark: 6 } }, { eliminated: true });
+    expect(t.eliminated).toBe(true);
+    expect(t.finalPoints).toBe(0);
+  });
+
+  it('offers every half mark from 0 to 10', () => {
+    expect(MARKS).toHaveLength(21);
+    expect(MARKS.every(isValidMark)).toBe(true);
   });
 });

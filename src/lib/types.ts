@@ -48,3 +48,86 @@ export type TestMovement = {
 
 /** A movement before it is saved (no ids yet). */
 export type MovementDraft = Omit<TestMovement, 'id' | 'test_id'>;
+
+export type ShowStatus = 'draft' | 'open' | 'live' | 'closed';
+export type SheetStatus = 'draft' | 'submitted' | 'signed';
+export type JudgePosition = 'C' | 'E' | 'H' | 'M' | 'B' | 'K' | 'F' | 'A';
+
+export const JUDGE_POSITIONS: JudgePosition[] = ['C', 'E', 'H', 'M', 'B', 'K', 'F', 'A'];
+
+export const SHOW_STATUS_LABELS: Record<ShowStatus, string> = {
+  draft: 'Draft',
+  open: 'Entries open',
+  live: 'Live',
+  closed: 'Closed',
+};
+
+export const SHEET_STATUS_LABELS: Record<SheetStatus, string> = {
+  draft: 'In progress',
+  submitted: 'With judge',
+  signed: 'Signed',
+};
+
+export type Club = { id: string; name: string; created_by: string };
+
+export type Show = {
+  id: string;
+  club_id: string;
+  name: string;
+  venue: string | null;
+  show_date: string;
+  status: ShowStatus;
+};
+
+export type Arena = { id: string; show_id: string; name: string; size: ArenaSize | null };
+
+export type DressageClass = {
+  id: string;
+  show_id: string;
+  arena_id: string | null;
+  test_id: string;
+  name: string;
+  start_time: string | null;
+  results_published: boolean;
+};
+
+export type ClassJudge = {
+  id: string;
+  class_id: string;
+  judge_id: string;
+  scribe_id: string | null;
+  position: JudgePosition;
+};
+
+export type Entry = {
+  id: string;
+  class_id: string;
+  rider_id: string | null;
+  rider_name: string;
+  horse_name: string;
+  draw_order: number | null;
+  start_time: string | null;
+  withdrawn: boolean;
+};
+
+export type MovementScore = {
+  sheet_id: string;
+  movement_id: string;
+  mark: number | null;
+  comment: string | null;
+  client_updated_at: string | null;
+};
+
+export type ScoreSheet = {
+  id: string;
+  entry_id: string;
+  class_judge_id: string;
+  status: SheetStatus;
+  errors_of_course: number;
+  other_deductions: number;
+  eliminated: boolean;
+  general_comment: string | null;
+  signed_at: string | null;
+  signed_by: string | null;
+  client_updated_at: string | null;
+};

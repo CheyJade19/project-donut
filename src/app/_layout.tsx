@@ -4,6 +4,7 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { colors } from '@/components/ui';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
+import { SyncProvider } from '@/providers/SyncProvider';
 
 function RootNavigator() {
   const { session, loading } = useAuth();
@@ -30,6 +31,12 @@ function RootNavigator() {
         <Stack.Screen name="tests/index" options={{ title: 'Test library' }} />
         <Stack.Screen name="tests/[id]" options={{ title: 'Test' }} />
         <Stack.Screen name="tests/edit" options={{ title: 'Edit test' }} />
+        <Stack.Screen name="scoring/index" options={{ title: 'Judging and scribing' }} />
+        <Stack.Screen name="scoring/[panel]/index" options={{ title: 'Draw' }} />
+        <Stack.Screen name="scoring/[panel]/[entry]" options={{ title: 'Score sheet' }} />
+        <Stack.Screen name="organiser/index" options={{ title: 'Organise shows' }} />
+        <Stack.Screen name="organiser/show/[id]" options={{ title: 'Show' }} />
+        <Stack.Screen name="organiser/class/[id]" options={{ title: 'Class' }} />
       </Stack.Protected>
       <Stack.Protected guard={!session}>
         <Stack.Screen name="sign-in" options={{ headerShown: false }} />
@@ -42,8 +49,10 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <StatusBar style="light" />
-      <RootNavigator />
+      <SyncProvider>
+        <StatusBar style="light" />
+        <RootNavigator />
+      </SyncProvider>
     </AuthProvider>
   );
 }
