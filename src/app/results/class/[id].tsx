@@ -100,7 +100,7 @@ export default function Leaderboard() {
               <Muted>
                 {[r.horse_name, r.draw_order != null && `Draw ${r.draw_order}`].filter(Boolean).join(' · ')}
               </Muted>
-              {!wide && r.judges_signed > 0 && judges.length > 1 && (
+              {!wide && r.judges_signed > 0 && !r.eliminated && judges.length > 1 && (
                 <Muted>
                   {r.judges.map((j) => `${j.position} ${j.percentage == null ? '–' : `${j.percentage.toFixed(2)}%`}`).join('   ')}
                 </Muted>
