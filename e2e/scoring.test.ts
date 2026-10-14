@@ -57,9 +57,9 @@ let classId = '';
 let entryIds: string[] = [];
 let movementIds: string[] = [];
 
-async function ok<T>(p: PromiseLike<{ data: T; error: { message: string } | null }>): Promise<T> {
+async function ok<T>(p: PromiseLike<{ data: T; error: { message: string } | null }>): Promise<NonNullable<T>> {
   const { data, error } = await p;
-  if (error) throw new Error(error.message);
+  if (error || data == null) throw new Error(error?.message ?? 'No data');
   return data;
 }
 
@@ -199,7 +199,7 @@ describe('a dressage class, end to end', () => {
 
   it('shows the rider their sheet only once results are published', async () => {
     expect(await ok(rider.from('score_sheets').select('id'))).toHaveLength(0);
-    await ok(org.from('classes').update({ results_published: true }).eq('id', classId));
+    expect((await org.from('classes').update({ results_published: true }).eq('id', classId)).error).toBeNull();
     const sheets = await ok(rider.from('score_sheets').select('status, movement_scores(mark, comment)'));
     expect(sheets).toHaveLength(1);
     expect(sheets[0].movement_scores).toHaveLength(3);

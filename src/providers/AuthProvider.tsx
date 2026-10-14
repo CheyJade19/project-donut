@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
@@ -25,8 +26,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       return;
     }
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
-    setProfile((data as Profile | null) ?? null);
+    // The last profile is kept on the device so roles still show at a
+    // showground with no signal.
+    const cacheKey = `eq.profile.v1.${userId}`;
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+    if (!error) {
+      setProfile((data as Profile | null) ?? null);
+      if (data) AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => {});
+      return;
+    }
+    const cached = await AsyncStorage.getItem(cacheKey).catch(() => null);
+    setProfile(cached ? (JSON.parse(cached) as Profile) : null);
   }, []);
 
   useEffect(() => {

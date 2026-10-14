@@ -20,7 +20,7 @@ People can hold several roles (a judge who also rides, for example).
 
 ## Status
 
-**Phase 1: foundations** (this branch)
+**Phase 1: foundations** (done)
 
 - App scaffold with sign up, sign in and profiles with roles.
 - Database schema with row level security: clubs, shows, arenas, classes,
@@ -28,7 +28,23 @@ People can hold several roles (a judge who also rides, for example).
   sheets and movement marks, plus a totals view.
 - Test library: browse and search tests, add them by hand, or upload a CSV.
 
-Next: Phase 2 (scribe scoring screen, offline sync, judge sign-off), Phase 3
+**Phase 2: scoring** (this branch)
+
+- Organiser screens: create a club, shows, arenas and classes; pick each
+  class's test; put judges (by position) and scribes on the panel; add riders
+  one by one or load the draw from a CSV (`rider,horse,draw,time`); withdraw
+  riders; publish results.
+- Scribe scoring screen for tablets: one movement at a time with big 0 to 10
+  buttons plus a half mark, comments with one-tap common remarks, collective
+  marks, errors of course, other deductions, and a live total and percentage.
+- Works with no signal: every tap is saved on the device and uploaded when
+  the connection comes back. A badge shows what is still waiting. If two
+  devices edit the same sheet, the newest edit to each mark wins.
+- Judge review and sign-off: the scribe sends the sheet to the judge, who
+  signs it (one at a time or all at once) on their own login. Signed sheets
+  are locked; only an organiser can reopen one.
+
+Next: Phase 3
 (live leaderboard, rider results, PDF sheets), Phase 4 (pilot show, store
 release). Later: showjumping and eventing.
 
@@ -65,10 +81,14 @@ Tests already used in a show are locked so existing score sheets stay valid.
 
 ```bash
 npm run typecheck   # TypeScript
-npm test            # scoring and CSV import unit tests
-PGURL=postgres://postgres:postgres@localhost:5432 supabase/tests/run.sh
+npm test            # scoring, offline queue and CSV import unit tests
+PGURL=postgres://postgres:postgres@localhost:5432 npm run test:db
                     # applies migrations to a scratch Postgres and checks the
-                    # access rules (who can see and edit what)
+                    # access rules and sheet saving/signing
+PGURL=postgres://postgres:postgres@localhost:5432 npm run test:e2e
+                    # a whole show day through the app's own data code,
+                    # served by PostgREST like Supabase does (downloads
+                    # PostgREST the first time)
 ```
 
-CI runs all three on every pull request.
+CI runs all four on every pull request.

@@ -30,7 +30,29 @@ jobs:
           --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
-      - name: Apply migrations and run security checks
+      - name: Apply migrations and run security and scoring checks
         env:
           PGURL: postgres://postgres:postgres@localhost:5432
         run: supabase/tests/run.sh
+
+  end-to-end:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Show day end to end (app data code against PostgREST)
+        env:
+          PGURL: postgres://postgres:postgres@localhost:5432
+        run: e2e/run.sh --ci
