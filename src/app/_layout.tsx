@@ -37,6 +37,9 @@ function RootNavigator() {
         <Stack.Screen name="organiser/index" options={{ title: 'Organise shows' }} />
         <Stack.Screen name="organiser/show/[id]" options={{ title: 'Show' }} />
         <Stack.Screen name="organiser/class/[id]" options={{ title: 'Class' }} />
+        <Stack.Screen name="results/index" options={{ title: 'Results' }} />
+        <Stack.Screen name="results/class/[id]" options={{ title: 'Leaderboard' }} />
+        <Stack.Screen name="results/entry/[id]" options={{ title: 'Score sheet' }} />
       </Stack.Protected>
       <Stack.Protected guard={!session}>
         <Stack.Screen name="sign-in" options={{ headerShown: false }} />

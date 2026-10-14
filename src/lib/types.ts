@@ -89,6 +89,11 @@ export type DressageClass = {
   name: string;
   start_time: string | null;
   results_published: boolean;
+  /** Everyone signed in sees placings as sheets are signed. */
+  leaderboard_public: boolean;
+  /** Riders' sheets go public automatically at this time. */
+  results_publish_at: string | null;
+  results_updated_at: string;
 };
 
 export type ClassJudge = {

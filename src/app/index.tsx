@@ -25,12 +25,14 @@ export default function Home() {
           <Muted>Your classes, the draw, and the score sheets. Works without signal.</Muted>
         </Card>
       )}
-      {hasRole('rider') && (
-        <Card>
-          <Text style={{ fontSize: 18, fontWeight: '600' }}>My results</Text>
-          <Muted>Your marks and judges' comments will appear here once results are published.</Muted>
-        </Card>
-      )}
+      <Card onPress={() => router.push('/results')}>
+        <Text style={{ fontSize: 18, fontWeight: '600' }}>{hasRole('rider') ? 'My results and scoreboards' : 'Results and scoreboards'}</Text>
+        <Muted>
+          {hasRole('rider')
+            ? "Live leaderboards, your placings, and each judge's marks and comments."
+            : 'Live leaderboards and published results.'}
+        </Muted>
+      </Card>
 
       <Card onPress={() => router.push('/organiser')}>
         <Text style={{ fontSize: 18, fontWeight: '600' }}>{hasRole('organiser') ? 'Organise shows' : 'Run a club'}</Text>

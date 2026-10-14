@@ -44,6 +44,11 @@ export default function PanelDraw() {
           .join(' · ')}
       </Muted>
       {fromCache && error ? <Muted>No signal. Using the draw saved on this device.</Muted> : null}
+      <Button
+        label="Class leaderboard"
+        variant="secondary"
+        onPress={() => router.push({ pathname: '/results/class/[id]', params: { id: bundle.cls.id } })}
+      />
 
       {isJudge && readyToSign.length > 0 && (
         <Card>
